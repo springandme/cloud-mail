@@ -123,19 +123,34 @@ jobs:
           EOF
           fi
 
-          sed -i "s|\${NAME}|${NAME}|g" "$CONFIG_FILE"
-          sed -i "s|\${CUSTOM_DOMAIN}|${CUSTOM_DOMAIN}|g" "$CONFIG_FILE"
-          sed -i "s|\"\${DOMAIN}\"|${DOMAIN}|g" "$CONFIG_FILE"
-          sed -i "s|\${ADMIN}|${ADMIN}|g" "$CONFIG_FILE"
-          sed -i "s|\${JWT_SECRET}|${JWT_SECRET}|g" "$CONFIG_FILE"
-          sed -i "s|\${R2_BUCKET_NAME}|${R2_BUCKET_NAME}|g" "$CONFIG_FILE"
-          sed -i "s|\${PROJECT_LINK}|${PROJECT_LINK}|g" "$CONFIG_FILE"
-          sed -i "s|\${ANALYSIS_CACHE}|${ANALYSIS_CACHE}|g" "$CONFIG_FILE"
-          sed -i "s|\${AI_MODEL}|${AI_MODEL}|g" "$CONFIG_FILE"
-          sed -i "s|\${LINUXDO_CLIENT_ID}|${LINUXDO_CLIENT_ID}|g" "$CONFIG_FILE"
-          sed -i "s|\${LINUXDO_CLIENT_SECRET}|${LINUXDO_CLIENT_SECRET}|g" "$CONFIG_FILE"
-          sed -i "s|\${LINUXDO_CALLBACK_URL}|${LINUXDO_CALLBACK_URL}|g" "$CONFIG_FILE"
-          sed -i "s|\${LINUXDO_SWITCH}|${LINUXDO_SWITCH}|g" "$CONFIG_FILE"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          config_file = Path("wrangler-action.toml")
+          config = config_file.read_text()
+
+          replacements = {
+              "${NAME}": os.environ["NAME"],
+              "${CUSTOM_DOMAIN}": os.environ["CUSTOM_DOMAIN"],
+              '"${DOMAIN}"': os.environ["DOMAIN"],
+              "${ADMIN}": os.environ["ADMIN"],
+              "${JWT_SECRET}": os.environ["JWT_SECRET"],
+              "${R2_BUCKET_NAME}": os.environ["R2_BUCKET_NAME"],
+              "${PROJECT_LINK}": os.environ["PROJECT_LINK"],
+              "${ANALYSIS_CACHE}": os.environ["ANALYSIS_CACHE"],
+              "${AI_MODEL}": os.environ["AI_MODEL"],
+              "${LINUXDO_CLIENT_ID}": os.environ["LINUXDO_CLIENT_ID"],
+              "${LINUXDO_CLIENT_SECRET}": os.environ["LINUXDO_CLIENT_SECRET"],
+              "${LINUXDO_CALLBACK_URL}": os.environ["LINUXDO_CALLBACK_URL"],
+              "${LINUXDO_SWITCH}": os.environ["LINUXDO_SWITCH"],
+          }
+
+          for placeholder, value in replacements.items():
+              config = config.replace(placeholder, value)
+
+          config_file.write_text(config)
+          PY
           
           echo "✅ Environment setup completed."
 
